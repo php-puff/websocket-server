@@ -1,0 +1,52 @@
+{
+    "name": "puff/websocket-server",
+    "description": "Fiber-based WebSocket application for PHP Unison Fiber Framework",
+    "type": "library",
+    "keywords": [
+        "php",
+        "websocket",
+        "server",
+        "fiber",
+        "async",
+        "puff"
+    ],
+    "license": "MIT",
+    "require": {
+        "puff/application": "dev-main",
+        "puff/async": "dev-main",
+        "puff/config": "dev-main",
+        "puff/server": "dev-main",
+        "psr/log": "^3.0",
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Puff\\WebsocketServer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Puff\\WebsocketServer\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "puff": {
+            "config": {"websocket.server.php": "config/websocket.server.php"},
+            "apps": [
+                "Puff\\WebsocketServer\\WebSocketApplication"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit tests"
+    }
+}
