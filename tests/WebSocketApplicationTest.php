@@ -31,9 +31,11 @@ final class WebSocketApplicationTest extends TestCase
     public function testReadsWebSocketConfiguration(): void
     {
         $config = new Config([
-            'websocket' => ['server' => [
+            'server' => [[
+                'type' => 'websocket',
                 'addr' => '127.0.0.1:8792',
                 'workers' => 2,
+                'routes' => [],
             ]],
         ]);
         $container = new Container();
@@ -51,5 +53,22 @@ final class WebSocketApplicationTest extends TestCase
         Discovery::reset();
 
         self::assertContains(WebSocketApplication::class, Discovery::apps());
+    }
+
+    public function testLoadsMultipleWebSocketServersFromOneConfiguration(): void
+    {
+        $config = new Config([
+            'server' => [
+                ['type' => 'websocket', 'addr' => '127.0.0.1:8791', 'workers' => 2, 'routes' => []],
+                ['type' => 'websocket', 'addr' => '127.0.0.1:8792', 'workers' => 2, 'routes' => []],
+            ],
+        ]);
+        $container = new Container();
+        $container->instance(Config::class, $config);
+        $application = new Application($container, [WebSocketApplication::class], []);
+        $worker = $application->container()->make(WebSocketApplication::class);
+
+        self::assertSame(2, $worker->workers());
+        self::assertSame('127.0.0.1:8791, 127.0.0.1:8792', $worker->info()['addr']);
     }
 }

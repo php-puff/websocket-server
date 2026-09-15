@@ -7,12 +7,13 @@ $app = new Puff\Application\Application($config);
 $app->run(); // Starts every installed application on one shared event loop.
 ```
 
-The package publishes `config/websocket.server.php`; its values are available under `websocket.server`. The default endpoint is `ws://127.0.0.1:8791`. Incoming messages are echoed unless `handler` or `routes` is configured.
+WebSocket instances are read from the shared `config/server.php` list. Each item with `type: 'websocket'` starts a listener.
 
 ```php
 return [
+    'type' => 'websocket',
     'addr' => '127.0.0.1:8791',
-    'routes' => dirname(__DIR__) . '/app/websocket.php',
+    'routes' => [dirname(__DIR__) . '/app/websocket.php'],
     'workers' => 1,
     'max_message_size' => 2 * 1024 * 1024,
     'max_handshake_size' => 16 * 1024,
@@ -22,6 +23,8 @@ return [
     'protocols' => ['json'],
 ];
 ```
+
+Multiple WebSocket listeners are supported. All WebSocket items share one Application process group, so they must use the same `workers` value.
 
 An empty `allowed_origins` list accepts any syntactically valid Origin. Configure an explicit list for browser-facing production services. Messages from one connection run sequentially; separate connections can run concurrently.
 

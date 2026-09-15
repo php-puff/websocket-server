@@ -19,10 +19,10 @@ use Puff\Config\Config;
 
 final class WebSocketApplication implements Contract
 {
-    private ?Server $server = null;
+    /** @var list<Server> */
+    private array $servers = [];
 
-    /** @var array<string, mixed> */
-    private array $config = [];
+    private ?int $workers = null;
 
     public function name(): string
     {
@@ -31,12 +31,21 @@ final class WebSocketApplication implements Contract
 
     public function boot(Application $app): void
     {
+        $this->servers = [];
+        $this->workers = null;
         $container = $app->container();
-        $this->config = (array) $container->get(Config::class)->get('websocket.server', []);
-        $handler = $this->config['handler'] ?? null;
-        if ($handler === null && isset($this->config['routes'])) {
+        $config = $container->get(Config::class);
+        if (!$config instanceof Config) {
+            throw new \LogicException('Config service binding is invalid.');
+        }
+        $logger = $container->bound(LoggerInterface::class) ? $container->get(LoggerInterface::class) : null;
+        foreach (\Puff\Server\ServerConfig::all($config->get('server', [])) as $server) {
+            if ($server['type'] !== 'websocket') {
+                continue;
+            }
+            $routes = $server['routes'] ?? [];
             $handler = new Dispatcher(
-                $this->routes($this->config['routes']),
+                $this->routes($routes),
                 static function (mixed $route, array $parameters) use ($container): mixed {
                     if (!\is_callable($route) && !\is_string($route) && !\is_array($route)) {
                         throw new \InvalidArgumentException('Invalid WebSocket route handler.');
@@ -44,40 +53,48 @@ final class WebSocketApplication implements Contract
                     return $container->call($route, $parameters);
                 },
             );
+            $this->servers[] = new Server($handler, $server, EventLoop::get(), null, $logger);
+            $this->setWorkers($server['workers']);
         }
-        $handler ??= static fn (string $message): string => $message;
-        $logger = $container->bound(LoggerInterface::class) ? $container->get(LoggerInterface::class) : null;
-        $this->server = new Server($handler, $this->config, EventLoop::get(), null, $logger);
+        if ($this->servers === []) {
+            throw new \LogicException('No WebSocket server is configured.');
+        }
     }
 
     public function start(): void
     {
-        $this->server()->start();
+        foreach ($this->servers as $server) {
+            $server->start();
+        }
     }
 
     public function stop(): void
     {
-        $this->server?->stop();
+        foreach ($this->servers as $server) {
+            $server->stop();
+        }
     }
 
     public function workers(): int
     {
-        return \max(1, (int) ($this->config['workers'] ?? 1));
+        return $this->workers ?? 1;
     }
 
     /** @return array{name: string, addr: string, url: string, workers: int, connections: int} */
     public function info(): array
     {
+        $info = \array_map(static fn (Server $server): array => $server->info(), $this->servers);
         return [
-            ...$this->server()->info(),
             'name' => $this->name(),
+            'addr' => \implode(', ', \array_column($info, 'addr')),
+            'url' => \implode(', ', \array_column($info, 'url')),
             'workers' => $this->workers(),
         ];
     }
 
     public function server(): Server
     {
-        return $this->server ?? throw new \LogicException('WebSocket worker has not been booted.');
+        return $this->servers[0] ?? throw new \LogicException('WebSocket worker has not been booted.');
     }
 
     /**
@@ -95,5 +112,13 @@ final class WebSocketApplication implements Contract
             $routes = \array_replace_recursive($routes, $loaded);
         }
         return $routes;
+    }
+
+    private function setWorkers(int $workers): void
+    {
+        if ($this->workers !== null && $this->workers !== $workers) {
+            throw new \InvalidArgumentException('WebSocket servers must use the same workers value.');
+        }
+        $this->workers = $workers;
     }
 }

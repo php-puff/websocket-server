@@ -34,7 +34,6 @@
     },
     "extra": {
         "puff": {
-            "config": {"websocket.server.php": "config/websocket.server.php"},
             "apps": [
                 "Puff\\WebsocketServer\\WebSocketApplication"
             ]
