@@ -14,7 +14,6 @@ return [
     'type' => 'websocket',
     'addr' => '127.0.0.1:8791',
     'routes' => [dirname(__DIR__) . '/app/websocket.php'],
-    'workers' => 1,
     'max_message_size' => 2 * 1024 * 1024,
     'max_handshake_size' => 16 * 1024,
     'max_headers' => 100,
@@ -24,7 +23,7 @@ return [
 ];
 ```
 
-Multiple WebSocket listeners are supported. All WebSocket items share one Application process group, so they must use the same `workers` value.
+Multiple WebSocket listeners are supported. Their shared Worker count is configured by `workers` in `config/config.php`.
 
 An empty `allowed_origins` list accepts any syntactically valid Origin. Configure an explicit list for browser-facing production services. Messages from one connection run sequentially; separate connections can run concurrently.
 

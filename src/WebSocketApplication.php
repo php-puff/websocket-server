@@ -39,7 +39,11 @@ final class WebSocketApplication implements Contract
             throw new \LogicException('Config service binding is invalid.');
         }
         $logger = $container->bound(LoggerInterface::class) ? $container->get(LoggerInterface::class) : null;
-        foreach (\Puff\Server\ServerConfig::all($config->get('server', [])) as $server) {
+        $workers = $config->get('workers', 1);
+        if (!\is_int($workers) || $workers < 1) {
+            throw new \InvalidArgumentException('Config workers must be a positive integer.');
+        }
+        foreach (\Puff\Server\ServerConfig::all($config->get('server', []), $workers) as $server) {
             if ($server['type'] !== 'websocket') {
                 continue;
             }

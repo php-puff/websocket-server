@@ -31,10 +31,10 @@ final class WebSocketApplicationTest extends TestCase
     public function testReadsWebSocketConfiguration(): void
     {
         $config = new Config([
+            'workers' => 2,
             'server' => [[
                 'type' => 'websocket',
                 'addr' => '127.0.0.1:8792',
-                'workers' => 2,
                 'routes' => [],
             ]],
         ]);
@@ -58,9 +58,10 @@ final class WebSocketApplicationTest extends TestCase
     public function testLoadsMultipleWebSocketServersFromOneConfiguration(): void
     {
         $config = new Config([
+            'workers' => 2,
             'server' => [
-                ['type' => 'websocket', 'addr' => '127.0.0.1:8791', 'workers' => 2, 'routes' => []],
-                ['type' => 'websocket', 'addr' => '127.0.0.1:8792', 'workers' => 2, 'routes' => []],
+                ['type' => 'websocket', 'addr' => '127.0.0.1:8791', 'routes' => []],
+                ['type' => 'websocket', 'addr' => '127.0.0.1:8792', 'routes' => []],
             ],
         ]);
         $container = new Container();
