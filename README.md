@@ -12,7 +12,7 @@ WebSocket instances are read from the shared `config/server.php` list. Each item
 ```php
 return [
     'type' => 'websocket',
-    'addr' => '127.0.0.1:8791',
+    'addr' => '0.0.0.0:8791',
     'routes' => [dirname(__DIR__) . '/app/websocket.php'],
     'max_message_size' => 2 * 1024 * 1024,
     'max_handshake_size' => 16 * 1024,

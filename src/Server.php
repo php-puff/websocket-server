@@ -48,7 +48,7 @@ final class Server implements TcpInterface
         ?LoggerInterface $logger = null,
     ) {
         $this->config = \array_replace([
-            'addr' => '127.0.0.1:8791',
+            'addr' => '0.0.0.0:8791',
             'backlog' => 256,
             'idle_timeout' => 60.0,
             'max_message_size' => 2 * 1024 * 1024,
@@ -83,12 +83,11 @@ final class Server implements TcpInterface
         return $this->tcp->address();
     }
 
-    /** @return array{addr: string, url: string, connections: int} */
+    /** @return array{addr: string, connections: int} */
     public function info(): array
     {
         return [
             'addr' => $this->address(),
-            'url' => 'ws://' . $this->address(),
             'connections' => $this->tcp->connectionCount(),
         ];
     }

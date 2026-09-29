@@ -84,14 +84,13 @@ final class WebSocketApplication implements Contract
         return $this->workers ?? 1;
     }
 
-    /** @return array{name: string, addr: string, url: string, workers: int, connections: int} */
+    /** @return array{name: string, addr: string, workers: int} */
     public function info(): array
     {
         $info = \array_map(static fn (Server $server): array => $server->info(), $this->servers);
         return [
             'name' => $this->name(),
             'addr' => \implode(', ', \array_column($info, 'addr')),
-            'url' => \implode(', ', \array_column($info, 'url')),
             'workers' => $this->workers(),
         ];
     }

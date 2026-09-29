@@ -24,8 +24,7 @@ final class DispatcherTest extends TestCase
     {
         $info = (new Server())->info();
 
-        self::assertSame(['addr', 'url', 'connections'], \array_keys($info));
-        self::assertSame('ws://127.0.0.1:8791', $info['url']);
+        self::assertSame(['addr', 'connections'], \array_keys($info));
     }
 
     public function testDispatchesByPathAndEvent(): void
